@@ -1,27 +1,26 @@
-import "bootstrap/dist/css/bootstrap.css";
-import "../css/style.css";
+import 'bootstrap/dist/css/bootstrap.css';
+import '../css/style.css';
 
-import UI from "./config/ui.config";
-import { validate } from "./helpers/validate";
-import { showInputError, removeInputError } from "./views/form";
-import { login } from "./services/auth.service";
+import UI from './config/ui.config';
+import { validate } from './helpers/validate';
+import { showInputError, removeInputError } from './views/form';
+import { login } from './services/auth.service';
+import { notify } from './views/notifications';
+import { getNews } from './services/news.service';
 
 const { form, inputEmail, inputPassword } = UI;
 const inputs = [inputEmail, inputPassword];
 
-form.addEventListener("submit", (e) => {
+// Events
+form.addEventListener('submit', e => {
   e.preventDefault();
   onSubmit();
 });
+inputs.forEach(el => el.addEventListener('focus', () => removeInputError(el)));
 
-inputs.forEach((el) => {
-  el.addEventListener("focus", () => {
-    removeInputError(el);
-  });
-});
-
+// Handlers
 async function onSubmit() {
-  const isValidForm = inputs.every((el) => {
+  const isValidForm = inputs.every(el => {
     const isValidInput = validate(el);
     if (!isValidInput) {
       showInputError(el);
@@ -29,12 +28,14 @@ async function onSubmit() {
     return isValidInput;
   });
 
-  if(!isValidForm) return
+  if (!isValidForm) return;
 
   try {
-    await login(inputEmail.value,inputPassword.value)
-  } catch (error) {
-
+    await login(inputEmail.value, inputPassword.value);
+    await getNews();
+    form.reset();
+    notify({ msg: 'Login success', className: 'alert-success' });
+  } catch (err) {
+    notify({ mas: 'Login faild', className: 'alert-danger' });
   }
-
 }
